@@ -104,7 +104,7 @@ class BuyLimitTracker
 
 		final SlotOffer previous = readSlot(slot);
 		final SlotOffer current = new SlotOffer(offer.getItemId(), offer.getPrice(),
-			offer.getTotalQuantity(), offer.getQuantitySold());
+			offer.getTotalQuantity(), offer.getQuantitySold(), offer.getSpent());
 		configManager.setRSProfileConfiguration(LimitKeeperConfig.GROUP, SLOT_PREFIX + slot, gson.toJson(current));
 
 		if (!isBuy(state))
@@ -114,13 +114,13 @@ class BuyLimitTracker
 
 		// A slot holding an offer we have not seen before may already be partly filled - it was
 		// bought while we were not watching, so count all of it now.
-		final int delta = current.isSameOffer(previous)
-			? current.quantity - previous.quantity
-			: current.quantity;
+		final boolean sameOffer = current.isSameOffer(previous);
+		final int quantityDelta = sameOffer ? current.quantity - previous.quantity : current.quantity;
+		final long spentDelta = sameOffer ? (long) current.spent - previous.spent : current.spent;
 
-		if (delta > 0)
+		if (quantityDelta > 0)
 		{
-			record(offer.getItemId(), delta);
+			record(offer.getItemId(), quantityDelta, Math.max(0, spentDelta));
 		}
 	}
 
@@ -191,7 +191,7 @@ class BuyLimitTracker
 		}
 	}
 
-	private void record(int itemId, int quantity)
+	private void record(int itemId, int quantity, long spent)
 	{
 		final int canonical = itemManager.canonicalize(itemId);
 		final long now = System.currentTimeMillis();
@@ -220,10 +220,11 @@ class BuyLimitTracker
 		}
 
 		window.bought += quantity;
+		window.spent += spent;
 		configManager.setRSProfileConfiguration(LimitKeeperConfig.GROUP, WINDOW_PREFIX + canonical, gson.toJson(window));
 
-		log.debug("Bought {} x {} ({}), {}/{} used this period", quantity, window.name, canonical,
-			window.bought, window.limit);
+		log.debug("Bought {} x {} ({}) for {}, {}/{} used this period", quantity, window.name,
+			canonical, spent, window.bought, window.limit);
 
 		if (!wasAtLimit && window.isAtLimit() && limitReachedListener != null)
 		{

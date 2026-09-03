@@ -34,17 +34,19 @@ class SlotOffer
 	int price;
 	int total;
 	int quantity;
+	int spent;
 
 	SlotOffer()
 	{
 	}
 
-	SlotOffer(int itemId, int price, int total, int quantity)
+	SlotOffer(int itemId, int price, int total, int quantity, int spent)
 	{
 		this.itemId = itemId;
 		this.price = price;
 		this.total = total;
 		this.quantity = quantity;
+		this.spent = spent;
 	}
 
 	/**
