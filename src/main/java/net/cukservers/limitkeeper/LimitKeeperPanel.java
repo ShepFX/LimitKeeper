@@ -182,10 +182,21 @@ class LimitKeeperPanel extends PluginPanel
 		counts.setFont(FontManager.getRunescapeSmallFont());
 		counts.setForeground(window.isAtLimit() ? ColorScheme.PROGRESS_ERROR_COLOR : ColorScheme.LIGHT_GRAY_COLOR);
 
-		final JPanel text = new JPanel(new DynamicGridLayout(2, 1, 0, 1));
+		final boolean showSpend = window.spent > 0;
+
+		final JPanel text = new JPanel(new DynamicGridLayout(showSpend ? 3 : 2, 1, 0, 1));
 		text.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		text.add(name);
 		text.add(counts);
+
+		if (showSpend)
+		{
+			final JLabel spend = new JLabel(describeSpend(window));
+			spend.setFont(FontManager.getRunescapeSmallFont());
+			spend.setForeground(ColorScheme.GRAND_EXCHANGE_PRICE);
+			spend.setToolTipText("Coins spent this period, and the average paid per item");
+			text.add(spend);
+		}
 
 		final JLabel timer = new JLabel(formatRemaining(window.remainingMillis()));
 		timer.setFont(FontManager.getRunescapeSmallFont());
@@ -209,6 +220,12 @@ class LimitKeeperPanel extends PluginPanel
 		}
 
 		return row;
+	}
+
+	private static String describeSpend(BuyLimitWindow window)
+	{
+		return QuantityFormatter.quantityToStackSize(window.spent) + " gp - "
+			+ QuantityFormatter.quantityToStackSize(window.averagePrice()) + " ea";
 	}
 
 	private static String describeCounts(BuyLimitWindow window)
@@ -242,7 +259,7 @@ class LimitKeeperPanel extends PluginPanel
 		final List<String> parts = new ArrayList<>(windows.size());
 		for (BuyLimitWindow window : windows)
 		{
-			parts.add(window.itemId + ":" + window.bought + ":" + window.limit);
+			parts.add(window.itemId + ":" + window.bought + ":" + window.limit + ":" + window.spent);
 		}
 		return String.join(",", parts);
 	}

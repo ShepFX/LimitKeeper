@@ -362,9 +362,19 @@ public class LimitKeeperPlugin extends Plugin
 				+ QuantityFormatter.formatNumber(window.remaining()) + " left");
 		}
 
-		return text.append("</col> <col=a5a5a5>resets in ")
+		text.append("</col> <col=a5a5a5>resets in ")
 			.append(LimitKeeperPanel.formatRemaining(window.remainingMillis()))
-			.append("</col>")
-			.toString();
+			.append("</col>");
+
+		if (window.spent > 0)
+		{
+			text.append("<br><col=6ee16e>")
+				.append(QuantityFormatter.quantityToStackSize(window.spent))
+				.append(" gp spent</col> <col=a5a5a5>(")
+				.append(QuantityFormatter.quantityToStackSize(window.averagePrice()))
+				.append(" ea)</col>");
+		}
+
+		return text.toString();
 	}
 }

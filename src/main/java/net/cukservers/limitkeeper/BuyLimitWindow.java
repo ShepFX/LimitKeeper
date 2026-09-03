@@ -34,12 +34,20 @@ class BuyLimitWindow
 	int itemId;
 	/** Quantity bought since {@link #start}. */
 	int bought;
+	/** Coins spent on those buys, so the average paid can be shown next to the count. */
+	long spent;
 	/** The item's buy limit, or 0 when RuneLite has no limit for it. */
 	int limit;
 	/** Epoch millis of the first buy tracked in this period. */
 	long start;
 	/** Item name, captured on the client thread so the side panel never has to look it up. */
 	String name;
+
+	/** Mean price paid per item this period, or 0 before anything has been bought. */
+	long averagePrice()
+	{
+		return bought > 0 ? spent / bought : 0;
+	}
 
 	long resetAt()
 	{

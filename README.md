@@ -10,7 +10,12 @@ how many more you can still buy. Limit Keeper keeps that count.
 ## What it does
 
 - **On the buy offer screen** it adds a line under the item text:
-  `Bought: 8,240 / 11,000  2,760 left  resets in 2:13:04`
+
+  ```
+  Bought: 8,240 / 11,000  2,760 left  resets in 2:13:04
+  1.2M gp spent (146 ea)
+  ```
+
 - **In a side panel** it lists every item with a period running, soonest to reset first, with a
   progress bar and a live countdown.
 - **Optional notifications** when you use up an item's limit, and when a limit you had used up
@@ -18,14 +23,21 @@ how many more you can still buy. Limit Keeper keeps that count.
 
 Counts are kept per account, so alts are tracked separately, and they survive a client restart.
 
+## Spend and average price
+
+Alongside the quantity, each period totals the coins spent and divides it out to an average paid
+per item. The market price on the offer screen is what the item is going for; this is what *you*
+actually paid for the ones you have bought so far this period, which is the number worth watching
+when you are buying into a rising item or filling an offer over several hours.
+
 ## How it works
 
 Buy limits themselves come from RuneLite's own item data, so there is no bundled item table to go
 stale and the plugin makes no network requests of its own.
 
 Purchases are counted from Grand Exchange offer updates. A snapshot of each of the eight slots is
-saved, so quantities bought during an earlier session are counted once rather than being replayed
-as new purchases at the next login.
+saved - item, price, total, quantity filled and coins spent - so amounts bought during an earlier
+session are counted once rather than being replayed as new purchases at the next login.
 
 The four hour period starts at the first purchase of an item, matching the game, and the count is
 cleared once it elapses.
