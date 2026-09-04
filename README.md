@@ -18,6 +18,9 @@ how many more you can still buy. Limit Keeper keeps that count.
 
 - **In a side panel** it lists every item with a period running, soonest to reset first, with a
   progress bar and a live countdown.
+- **As an infobox** while a limit is used up, showing that item's icon and the time until it frees
+  up - so the countdown is on screen with the Grand Exchange and the panel both closed. Only maxed
+  items get one, and it clears itself when the period elapses.
 - **Optional notifications** when you use up an item's limit, and when a limit you had used up
   becomes available again.
 
@@ -57,6 +60,7 @@ cleared once it elapses.
 | --- | --- | --- |
 | Show on offer screen | on | Adds the remaining limit to the Grand Exchange buy offer screen. |
 | Side panel | on | Shows the side panel of running periods. |
+| Infobox when maxed | on | Shows a countdown infobox for each item whose limit is used up. |
 | Hide unknown limits | off | Hides items with no known buy limit from the panel. |
 | Limit reached | off | Notifies you when an item's limit is used up. |
 | Limit reset | off | Notifies you when a limit you had used up is available again. |

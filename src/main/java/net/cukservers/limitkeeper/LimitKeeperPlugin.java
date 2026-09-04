@@ -26,7 +26,14 @@ package net.cukservers.limitkeeper;
 
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +57,10 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.ui.overlay.infobox.InfoBox;
+import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
+import net.runelite.client.ui.overlay.infobox.InfoBoxPriority;
+import net.runelite.client.ui.overlay.infobox.Timer;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.QuantityFormatter;
 
@@ -80,6 +91,9 @@ public class LimitKeeperPlugin extends Plugin
 	private ItemManager itemManager;
 
 	@Inject
+	private InfoBoxManager infoBoxManager;
+
+	@Inject
 	private Notifier notifier;
 
 	@Inject
@@ -94,6 +108,9 @@ public class LimitKeeperPlugin extends Plugin
 	private LimitKeeperPanel panel;
 	private NavigationButton navButton;
 	private ScheduledFuture<?> refreshTask;
+
+	/** Infoboxes currently shown, keyed by the item whose limit is used up. */
+	private final Map<Integer, InfoBox> infoBoxes = new ConcurrentHashMap<>();
 
 	/** Item whose buy offer is being set up, or -1 when no buy offer screen is open. */
 	private int examineItemId = -1;
@@ -129,6 +146,7 @@ public class LimitKeeperPlugin extends Plugin
 		}
 
 		tracker.setLimitReachedListener(null);
+		removeInfoBoxes();
 		removePanel();
 		examineItemId = -1;
 		examineText = null;
@@ -201,18 +219,29 @@ public class LimitKeeperPlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
-		if (!LimitKeeperConfig.GROUP.equals(event.getGroup()) || !"showSidePanel".equals(event.getKey()))
+		if (!LimitKeeperConfig.GROUP.equals(event.getGroup()))
 		{
 			return;
 		}
 
-		if (config.showSidePanel())
+		switch (event.getKey())
 		{
-			addPanel();
-		}
-		else
-		{
-			removePanel();
+			case "showSidePanel":
+				if (config.showSidePanel())
+				{
+					addPanel();
+				}
+				else
+				{
+					removePanel();
+				}
+				break;
+			case "showInfoBoxes":
+				if (!config.showInfoBoxes())
+				{
+					removeInfoBoxes();
+				}
+				break;
 		}
 	}
 
@@ -277,10 +306,14 @@ public class LimitKeeperPlugin extends Plugin
 				}
 			}
 
+			final List<BuyLimitWindow> windows = tracker.getActiveWindows();
+
+			syncInfoBoxes(windows);
+
 			if (panel != null)
 			{
-				final List<BuyLimitWindow> windows = visibleWindows();
-				SwingUtilities.invokeLater(() -> panel.update(windows));
+				final List<BuyLimitWindow> visible = visible(windows);
+				SwingUtilities.invokeLater(() -> panel.update(visible));
 			}
 		}
 		catch (Exception ex)
@@ -289,16 +322,85 @@ public class LimitKeeperPlugin extends Plugin
 		}
 	}
 
-	private List<BuyLimitWindow> visibleWindows()
+	private List<BuyLimitWindow> visible(List<BuyLimitWindow> windows)
 	{
-		final List<BuyLimitWindow> windows = tracker.getActiveWindows();
 		if (!config.hideUntrackedLimits())
 		{
 			return windows;
 		}
 
-		windows.removeIf(window -> !window.isLimitKnown());
-		return windows;
+		final List<BuyLimitWindow> visible = new ArrayList<>(windows.size());
+		for (BuyLimitWindow window : windows)
+		{
+			if (window.isLimitKnown())
+			{
+				visible.add(window);
+			}
+		}
+		return visible;
+	}
+
+	/**
+	 * Keeps one infobox per item whose limit is used up, so the countdown is visible with the
+	 * Grand Exchange and the side panel both closed.
+	 */
+	private void syncInfoBoxes(List<BuyLimitWindow> windows)
+	{
+		if (!config.showInfoBoxes())
+		{
+			removeInfoBoxes();
+			return;
+		}
+
+		final Set<Integer> maxed = new HashSet<>();
+
+		for (BuyLimitWindow window : windows)
+		{
+			if (!window.isAtLimit())
+			{
+				continue;
+			}
+
+			maxed.add(window.itemId);
+
+			if (!infoBoxes.containsKey(window.itemId))
+			{
+				infoBoxes.put(window.itemId, createInfoBox(window));
+			}
+		}
+
+		// Anything no longer maxed has either reset or been cleared.
+		final Iterator<Map.Entry<Integer, InfoBox>> boxes = infoBoxes.entrySet().iterator();
+		while (boxes.hasNext())
+		{
+			final Map.Entry<Integer, InfoBox> box = boxes.next();
+			if (!maxed.contains(box.getKey()))
+			{
+				infoBoxManager.removeInfoBox(box.getValue());
+				boxes.remove();
+			}
+		}
+	}
+
+	private InfoBox createInfoBox(BuyLimitWindow window)
+	{
+		final Timer timer = new Timer(window.remainingMillis(), ChronoUnit.MILLIS,
+			itemManager.getImage(window.itemId), this);
+		timer.setPriority(InfoBoxPriority.MED);
+		timer.setTooltip(window.name + " - " + QuantityFormatter.formatNumber(window.bought)
+			+ " bought, buy limit reached");
+		infoBoxManager.addInfoBox(timer);
+		return timer;
+	}
+
+	private void removeInfoBoxes()
+	{
+		for (InfoBox box : infoBoxes.values())
+		{
+			infoBoxManager.removeInfoBox(box);
+		}
+
+		infoBoxes.clear();
 	}
 
 	private void onLimitReached(BuyLimitWindow window)
