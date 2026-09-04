@@ -195,20 +195,22 @@ public class LimitKeeperPlugin extends Plugin
 			return;
 		}
 
-		final BuyLimitWindow window = tracker.getWindow(examineItemId);
-		if (window == null)
-		{
-			return;
-		}
-
 		final Widget target = findOfferTextWidget(setup);
 		if (target == null)
 		{
 			return;
 		}
 
+		// Bail on the marker before reading any state: this runs every client tick the offer screen
+		// is open, but the text only needs appending once per time the game rebuilds it.
 		final String text = target.getText();
 		if (text == null || text.contains(MARKER))
+		{
+			return;
+		}
+
+		final BuyLimitWindow window = tracker.getWindow(examineItemId);
+		if (window == null)
 		{
 			return;
 		}
