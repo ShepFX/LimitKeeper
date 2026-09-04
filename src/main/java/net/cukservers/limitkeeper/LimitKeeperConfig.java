@@ -57,10 +57,21 @@ public interface LimitKeeperConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "showInfoBoxes",
+		name = "Infobox when maxed",
+		description = "Shows an infobox counting down to the reset for each item whose buy limit you have used up.",
+		position = 3
+	)
+	default boolean showInfoBoxes()
+	{
+		return true;
+	}
+
+	@ConfigItem(
 		keyName = "hideUntrackedLimits",
 		name = "Hide unknown limits",
 		description = "Hides items that RuneLite has no buy limit for, instead of listing them with a count only.",
-		position = 3
+		position = 4
 	)
 	default boolean hideUntrackedLimits()
 	{
@@ -71,7 +82,7 @@ public interface LimitKeeperConfig extends Config
 		keyName = "limitReachedNotification",
 		name = "Limit reached",
 		description = "Notifies you when an item's buy limit is used up.",
-		position = 4
+		position = 5
 	)
 	default Notification limitReachedNotification()
 	{
@@ -82,7 +93,7 @@ public interface LimitKeeperConfig extends Config
 		keyName = "limitResetNotification",
 		name = "Limit reset",
 		description = "Notifies you when a tracked item's four hour period elapses and the limit is available again.",
-		position = 5
+		position = 6
 	)
 	default Notification limitResetNotification()
 	{
