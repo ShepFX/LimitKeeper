@@ -158,7 +158,7 @@ class LimitKeeperPanel extends PluginPanel
 			final JLabel label = timerLabels.get(window.itemId);
 			if (label != null)
 			{
-				label.setText(formatRemaining(window.remainingMillis()));
+				label.setText(window.remainingText());
 			}
 		}
 	}
@@ -198,7 +198,7 @@ class LimitKeeperPanel extends PluginPanel
 			text.add(spend);
 		}
 
-		final JLabel timer = new JLabel(formatRemaining(window.remainingMillis()));
+		final JLabel timer = new JLabel(window.remainingText());
 		timer.setFont(FontManager.getRunescapeSmallFont());
 		timer.setForeground(ColorScheme.GRAND_EXCHANGE_LIMIT);
 		timer.setToolTipText("Time until this item's buy limit resets");
@@ -238,20 +238,6 @@ class LimitKeeperPanel extends PluginPanel
 		return QuantityFormatter.formatNumber(window.bought) + " / "
 			+ QuantityFormatter.formatNumber(window.limit) + " - "
 			+ QuantityFormatter.formatNumber(window.remaining()) + " left";
-	}
-
-	static String formatRemaining(long millis)
-	{
-		final long seconds = Math.max(0, millis) / 1000;
-		final long hours = seconds / 3600;
-		final long minutes = (seconds % 3600) / 60;
-
-		if (hours > 0)
-		{
-			return String.format("%d:%02d:%02d", hours, minutes, seconds % 60);
-		}
-
-		return String.format("%d:%02d", minutes, seconds % 60);
 	}
 
 	private static String signature(List<BuyLimitWindow> windows)

@@ -12,9 +12,13 @@ how many more you can still buy. Limit Keeper keeps that count.
 - **On the buy offer screen** it adds a line under the item text:
 
   ```
-  Bought: 8,240 / 11,000  2,760 left  resets in 2:13:04
+  Bought: 8,240 / 11,000  2,760 left
   1.2M gp spent (146 ea)
   ```
+
+  The reset time is deliberately absent. The game already prints it on the buy limit line directly
+  above, and this text is written once when the offer screen builds, so a countdown here would sit
+  frozen rather than tick.
 
 - **In a side panel** it lists every item with a period running, soonest to reset first, with a
   progress bar and a live countdown.
