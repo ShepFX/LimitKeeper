@@ -59,6 +59,28 @@ class BuyLimitWindow
 		return resetAt() - System.currentTimeMillis();
 	}
 
+	/**
+	 * Time until this period resets, as {@code h:mm:ss} or {@code m:ss} once under an hour.
+	 *
+	 * <p>Deliberately not RuneLite's {@link net.runelite.client.ui.overlay.infobox.Timer}, whose text
+	 * takes the remaining seconds modulo an hour and so drops whole hours: with 2:47:03 left it
+	 * reads "47:03", counting down to zero and rolling over twice before the limit actually frees
+	 * up. A four hour period spends most of its life in the range that gets truncated.
+	 */
+	String remainingText()
+	{
+		final long seconds = Math.max(0, remainingMillis()) / 1000;
+		final long hours = seconds / 3600;
+		final long minutes = (seconds % 3600) / 60;
+
+		if (hours > 0)
+		{
+			return String.format("%d:%02d:%02d", hours, minutes, seconds % 60);
+		}
+
+		return String.format("%d:%02d", minutes, seconds % 60);
+	}
+
 	boolean isExpired()
 	{
 		return remainingMillis() <= 0;

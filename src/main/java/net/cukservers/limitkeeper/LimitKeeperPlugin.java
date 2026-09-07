@@ -26,7 +26,6 @@ package net.cukservers.limitkeeper;
 
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -60,7 +59,6 @@ import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.infobox.InfoBox;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxPriority;
-import net.runelite.client.ui.overlay.infobox.Timer;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.QuantityFormatter;
 
@@ -386,13 +384,12 @@ public class LimitKeeperPlugin extends Plugin
 
 	private InfoBox createInfoBox(BuyLimitWindow window)
 	{
-		final Timer timer = new Timer(window.remainingMillis(), ChronoUnit.MILLIS,
-			itemManager.getImage(window.itemId), this);
-		timer.setPriority(InfoBoxPriority.MED);
-		timer.setTooltip(window.name + " - " + QuantityFormatter.formatNumber(window.bought)
+		final BuyLimitInfoBox box = new BuyLimitInfoBox(itemManager.getImage(window.itemId), this, window);
+		box.setPriority(InfoBoxPriority.MED);
+		box.setTooltip(window.name + " - " + QuantityFormatter.formatNumber(window.bought)
 			+ " bought, buy limit reached");
-		infoBoxManager.addInfoBox(timer);
-		return timer;
+		infoBoxManager.addInfoBox(box);
+		return box;
 	}
 
 	private void removeInfoBoxes()
@@ -462,13 +459,17 @@ public class LimitKeeperPlugin extends Plugin
 		if (window.isLimitKnown())
 		{
 			text.append(" / ").append(QuantityFormatter.formatNumber(window.limit)).append("</col> ");
-			text.append(window.isAtLimit() ? "<col=e61e1e>limit reached" : "<col=37f046>"
-				+ QuantityFormatter.formatNumber(window.remaining()) + " left");
+			text.append(window.isAtLimit() ? "<col=e61e1e>limit reached</col>" : "<col=37f046>"
+				+ QuantityFormatter.formatNumber(window.remaining()) + " left</col>");
+		}
+		else
+		{
+			text.append("</col>");
 		}
 
-		text.append("</col> <col=a5a5a5>resets in ")
-			.append(LimitKeeperPanel.formatRemaining(window.remainingMillis()))
-			.append("</col>");
+		// No countdown here on purpose. This text is written once per rebuild of the offer screen,
+		// so a time would be frozen at whatever it read when the screen opened, and the game already
+		// prints the reset on its own buy limit line above. The side panel has the live countdown.
 
 		if (window.spent > 0)
 		{
