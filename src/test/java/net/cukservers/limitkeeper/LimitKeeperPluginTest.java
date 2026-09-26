@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026, Corey Jenkins <https://github.com/CoreyUK>
+ * Copyright (c) 2026, Corey Jenkins <https://github.com/ShepFX>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
