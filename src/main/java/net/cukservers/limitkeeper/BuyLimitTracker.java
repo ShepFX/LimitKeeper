@@ -116,11 +116,11 @@ class BuyLimitTracker
 		// bought while we were not watching, so count all of it now.
 		final boolean sameOffer = current.isSameOffer(previous);
 		final int quantityDelta = sameOffer ? current.quantity - previous.quantity : current.quantity;
-		final long spentDelta = sameOffer ? (long) current.spent - previous.spent : current.spent;
+		final long spentDelta = sameOffer ? current.spent - previous.spent : current.spent;
 
 		if (quantityDelta > 0)
 		{
-			record(offer.getItemId(), quantityDelta, Math.max(0, spentDelta));
+			record(offer.getItemId(), quantityDelta, Math.max(0L, spentDelta));
 		}
 	}
 

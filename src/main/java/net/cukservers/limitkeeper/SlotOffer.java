@@ -31,16 +31,18 @@ package net.cukservers.limitkeeper;
 class SlotOffer
 {
 	int itemId;
-	int price;
+	/** Price per item. Long because the client widened it in 1.13.0, for prices above 2^31-1. */
+	long price;
 	int total;
 	int quantity;
-	int spent;
+	/** Coins spent so far on this offer. Widened alongside {@link #price}. */
+	long spent;
 
 	SlotOffer()
 	{
 	}
 
-	SlotOffer(int itemId, int price, int total, int quantity, int spent)
+	SlotOffer(int itemId, long price, int total, int quantity, long spent)
 	{
 		this.itemId = itemId;
 		this.price = price;
